@@ -1,0 +1,31 @@
+services:
+  api:
+    build: .
+    ports: ["8000:8000"]
+    environment:
+      MONGO_URI: mongodb://mongo:27017
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-dev-only}
+      ENVIRONMENT: ${ENVIRONMENT:-dev}
+      VECTOR_BACKEND: ${VECTOR_BACKEND:-pinecone}
+      PINECONE_API_KEY: ${PINECONE_API_KEY:-}
+      PINECONE_INDEX: ${PINECONE_INDEX:-audio-rag}
+      EMBEDDING_BACKEND: ${EMBEDDING_BACKEND:-pinecone}
+      LLM_PROVIDER: ${LLM_PROVIDER:-none}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      AUDIO_DIR: /srv/data/audio
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+    volumes:
+      - ./data:/srv/data
+    depends_on: [mongo, redis]
+
+  mongo:
+    image: mongo:7
+    volumes: [mongo_data:/data/db]
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--maxmemory", "128mb", "--maxmemory-policy", "allkeys-lru"]
+
+volumes:
+  mongo_data:
